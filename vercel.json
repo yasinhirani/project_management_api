@@ -2,5 +2,5 @@
   "version": 2,
   "name": "Project Management",
   "builds": [{ "src": "./src/index.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "./src/index.js" }]
+  "routes": [{ "src": "/(.*)", "dest": "./src/app.js" }]
 }
