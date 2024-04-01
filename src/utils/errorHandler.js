@@ -16,6 +16,19 @@ const handleDuplicateErrorDB = (err) => {
   );
 };
 
+const handleValidationErrorDB = (err) => {
+  const message = Object.values(err.errors)
+    .map((error) => {
+      if (error.name === "CastError") {
+        return `Expected ${error.valueType} type for ${error.path}, but received ${error.kind}`;
+      } else {
+        return `Validation failed for ${error.path}, ${error.message}`;
+      }
+    })
+    .join(". ");
+  return new ApiError(message, 400);
+};
+
 const errorResponseDev = (err, res) => {
   res.status(err.statusCode).json({
     success: false,
@@ -53,6 +66,8 @@ const errorHandler = (err, req, res, next) => {
     );
     if (err.name === errorTypes.CAST_ERROR) error = handleCastErrorDB(err);
     if (err.code === 11000) error = handleDuplicateErrorDB(err);
+    if (err.name === errorTypes.VALIDATION_ERROR)
+      error = handleValidationErrorDB(err);
 
     errorResponseProduction(error, res);
   }

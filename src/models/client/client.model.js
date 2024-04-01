@@ -44,7 +44,7 @@ const clientSchema = new mongoose.Schema(
       required: [true, "Client address is required"],
     },
     dateOfEstablishment: {
-      type: Date,
+      type: String,
       required: [true, "Client's date of establishment is required"],
     },
     industryType: {
@@ -52,11 +52,11 @@ const clientSchema = new mongoose.Schema(
       required: [true, "Client industry type is required"],
     },
     preferredCommunicationMethod: {
-      type: String,
+      type: [String],
       required: [true, "Client preferred communication method is required"],
     },
     preferredCommunicationLanguage: {
-      type: String,
+      type: [String],
       required: [
         true,
         "Client preferred language for communication is required",
