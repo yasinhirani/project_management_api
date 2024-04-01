@@ -87,6 +87,12 @@ const clientSchema = new mongoose.Schema(
       ref: "Project",
       default: [],
     },
+    contractDocuments: [
+      {
+        fileName: String,
+        url: String,
+      },
+    ],
   },
   { timestamps: true }
 );
