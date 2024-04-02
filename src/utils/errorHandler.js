@@ -48,10 +48,8 @@ const errorResponseProduction = (err, res) => {
   } else {
     res.status(err.statusCode).json({
       success: false,
-      error: err,
       message: "Something went wrong!",
       data: null,
-      stack: err.stack
     });
   }
 };
