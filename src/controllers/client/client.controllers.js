@@ -5,7 +5,15 @@ import { Client } from "../../models/client/client.model.js";
 import handleFileUpload from "../../utils/fileUploadHandler.js";
 
 const getAllClients = asyncHandler(async (req, res, next) => {
-  const clients = await Client.find({});
+  const searchQuery = req.query;
+
+  const query = Client.find({});
+
+  if (searchQuery.fields) {
+    query.select(req.query.fields.split(",").join(" "));
+  }
+
+  const clients = await query;
 
   res.status(200).json(new ApiResponse({ clients }));
 });
