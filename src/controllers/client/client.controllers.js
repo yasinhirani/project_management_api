@@ -4,11 +4,15 @@ import ApiError from "../../utils/apiError.js";
 import { Client } from "../../models/client/client.model.js";
 import handleFileUpload from "../../utils/fileUploadHandler.js";
 
+/**
+ * Function to get all the clients 
+ */
 const getAllClients = asyncHandler(async (req, res, next) => {
   const searchQuery = req.query;
 
   const query = Client.find({});
 
+  // Limiting the fields when only some specific fields are required
   if (searchQuery.fields) {
     query.select(req.query.fields.split(",").join(" "));
   }
@@ -18,6 +22,9 @@ const getAllClients = asyncHandler(async (req, res, next) => {
   res.status(200).json(new ApiResponse({ clients }));
 });
 
+/**
+ * Function to get a specific client by id
+ */
 const getClient = asyncHandler(async (req, res, next) => {
   const client = await Client.findById(req.params.id)
     .select("-__v")
@@ -30,10 +37,15 @@ const getClient = asyncHandler(async (req, res, next) => {
   res.status(200).json(new ApiResponse({ client }));
 });
 
+/**
+ * Function to create a client
+ */
 const createClient = asyncHandler(async (req, res, next) => {
   const clientDocuments = [];
 
+  // Checking if the user has uploaded contract documents or not
   if (req.body.contractDocuments && req.body.contractDocuments.length > 0) {
+    // If contract documents uploaded, converting them to original file from base64 and upload to cloudinary
     for (let i = 0; i < req.body.contractDocuments.length; i++) {
       const documentData = await handleFileUpload(
         req.body.contractDocuments[i],
@@ -43,11 +55,13 @@ const createClient = asyncHandler(async (req, res, next) => {
     }
   }
 
+  // Create the client
   const client = await Client.create({
     ...req.body,
     contractDocuments: clientDocuments,
   });
 
+  // Response after client is created
   res
     .status(201)
     .json(new ApiResponse({ client }, "Client Added Successfully"));
