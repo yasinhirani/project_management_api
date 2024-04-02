@@ -51,6 +51,7 @@ const errorResponseProduction = (err, res) => {
       error: err,
       message: "Something went wrong!",
       data: null,
+      stack: err.stack
     });
   }
 };
