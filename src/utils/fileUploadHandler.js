@@ -27,7 +27,7 @@ const handleFileUpload = async (file, next) => {
       public_id: `${file.originalName}-${new Date().getTime()}.${
         file.extension
       }`,
-      resource_type: "raw",
+      resource_type: "auto",
     });
 
     // Deleting the file from our server once uploaded to cloudinary
