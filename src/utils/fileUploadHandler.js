@@ -1,4 +1,4 @@
-import { fileTypeFromBuffer } from "file-type";
+// import { fileTypeFromBuffer } from "file-type";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
 
@@ -9,38 +9,29 @@ import fs from "fs";
  * @returns Details of uploaded file with original name and its url
  */
 const handleFileUpload = async (file, next) => {
+  const fileNameWithPath = `public/temp/${
+    file.originalName
+  }-${new Date().getTime()}.${file.extension}`;
   try {
     // Converting base64 file to buffer
     const fileBuffer = Buffer.from(file.data, "base64");
 
     // Getting file type from buffer
-    const fileType = await fileTypeFromBuffer(fileBuffer);
+    // const fileType = await fileTypeFromBuffer(fileBuffer);
 
     // Storing the file temporary on our server
-    await fs.promises.writeFile(
-      `public/temp/${file.originalName}-${new Date().getDate()}.${
-        file.extension
-      }`,
-      fileBuffer
-    );
+    await fs.promises.writeFile(fileNameWithPath, fileBuffer);
 
     // Uploading the file to cloudinary
-    const result = await cloudinary.uploader.upload(
-      `public/temp/${file.originalName}-${new Date().getDate()}.${
+    const result = await cloudinary.uploader.upload(fileNameWithPath, {
+      public_id: `${file.originalName}-${new Date().getTime()}.${
         file.extension
       }`,
-      {
-        public_id: `${file.originalName}-${new Date().getDate()}.${
-          file.extension
-        }`,
-        resource_type: "auto",
-      }
-    );
+      resource_type: "raw",
+    });
 
     // Deleting the file from our server once uploaded to cloudinary
-    await fs.promises.unlink(
-      `public/temp/${file.originalName}-${new Date().getDate()}.${file.extension}`
-    );
+    await fs.promises.unlink(fileNameWithPath);
 
     // Returning the details of uploaded file
     return {
@@ -49,9 +40,7 @@ const handleFileUpload = async (file, next) => {
     };
   } catch (error) {
     // Catching errors, if any and if error deleting the file from our server
-    fs.unlinkSync(
-      `public/temp/${file.originalName}-${new Date().getDate()}.${file.extension}`
-    );
+    fs.unlinkSync(fileNameWithPath);
 
     // Throwing error to express
     next(error);
