@@ -14,13 +14,13 @@ const handleFileUpload = async (file, next) => {
   }-${new Date().getTime()}.${file.extension}`;
   try {
     // Converting base64 file to buffer
-    const fileBuffer = Buffer.from(file.data, "base64");
+    // const fileBuffer = Buffer.from(file.data, "base64");
 
     // Getting file type from buffer
     // const fileType = await fileTypeFromBuffer(fileBuffer);
 
-    // Storing the file temporary on our server
-    await fs.promises.writeFile(fileNameWithPath, fileBuffer);
+    // Storing the file temporary on the server
+    await fs.promises.writeFile(fileNameWithPath, file.data, "base64");
 
     // Uploading the file to cloudinary
     const result = await cloudinary.uploader.upload(fileNameWithPath, {
@@ -36,10 +36,10 @@ const handleFileUpload = async (file, next) => {
     // Returning the details of uploaded file
     return {
       fileName: file.originalName,
-      url: result.url,
+      url: result.secure_url,
     };
   } catch (error) {
-    // Catching errors, if any and if error deleting the file from our server
+    // Catching errors, if any and if error, deleting the file from the server
     fs.unlinkSync(fileNameWithPath);
 
     // Throwing error to express

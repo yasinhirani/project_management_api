@@ -5,7 +5,7 @@ import { Client } from "../../models/client/client.model.js";
 import handleFileUpload from "../../utils/fileUploadHandler.js";
 
 /**
- * Function to get all the clients 
+ * Function to get all the clients
  */
 const getAllClients = asyncHandler(async (req, res, next) => {
   const searchQuery = req.query;
@@ -67,4 +67,28 @@ const createClient = asyncHandler(async (req, res, next) => {
     .json(new ApiResponse({ client }, "Client Added Successfully"));
 });
 
-export { getAllClients, createClient, getClient };
+/**
+ * Function to update the client details
+ */
+const updateClient = asyncHandler(async (req, res, next) => {
+  const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
+    new: true,
+  });
+
+  res
+    .status(200)
+    .json(new ApiResponse({ client }, "Client updated successfully"));
+});
+
+/**
+ * Function to delete the client
+ */
+const deleteClient = asyncHandler(async (req, res, next) => {
+  const client = await Client.findByIdAndDelete(req.params.id);
+
+  res
+    .status(200)
+    .json(new ApiResponse(null, "Client deleted successfully"));
+});
+
+export { getAllClients, createClient, getClient, updateClient, deleteClient };
