@@ -3,6 +3,7 @@ import ApiResponse from "../../utils/apiResponse.js";
 import ApiError from "../../utils/apiError.js";
 import { Client } from "../../models/client/client.model.js";
 import handleFileUpload from "../../utils/fileUploadHandler.js";
+import deleteFiles from "../../utils/fileDeleteHandler.js";
 
 /**
  * Function to get all the clients
@@ -43,6 +44,18 @@ const getClient = asyncHandler(async (req, res, next) => {
 const createClient = asyncHandler(async (req, res, next) => {
   const clientDocuments = [];
 
+  const availableCompany = await Client.findOne({
+    companyName: req.body.companyName,
+  });
+
+  if (availableCompany) {
+    return next(
+      new ApiError(
+        `A company with same name ${req.body.companyName} already exists, Please provide a different company name.`
+      )
+    );
+  }
+
   // Checking if the user has uploaded contract documents or not
   if (req.body.contractDocuments && req.body.contractDocuments.length > 0) {
     // If contract documents uploaded, converting them to original file from base64 and upload to cloudinary
@@ -71,6 +84,19 @@ const createClient = asyncHandler(async (req, res, next) => {
  * Function to update the client details
  */
 const updateClient = asyncHandler(async (req, res, next) => {
+  const availableCompanyName = await Client.findOne({
+    companyName: req.body.companyName,
+  });
+
+  if (availableCompanyName) {
+    return next(
+      new ApiError(
+        `A client with the same company name ${req.body.companyName} already exist, Please provide a different company name.`,
+        404
+      )
+    );
+  }
+
   const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
   });
@@ -84,11 +110,21 @@ const updateClient = asyncHandler(async (req, res, next) => {
  * Function to delete the client
  */
 const deleteClient = asyncHandler(async (req, res, next) => {
-  const client = await Client.findByIdAndDelete(req.params.id);
+  const client = await Client.findOne({ _id: req.params.id });
 
-  res
-    .status(200)
-    .json(new ApiResponse(null, "Client deleted successfully"));
+  if (!client) {
+    return next(new ApiError("Client not found", 404));
+  }
+
+  if (client.contractDocuments.length > 0) {
+    for (let i = 0; i < client.contractDocuments.length; i++) {
+      await deleteFiles(client.contractDocuments[i], next);
+    }
+  }
+
+  await Client.findByIdAndDelete(req.params.id);
+
+  res.status(200).json(new ApiResponse(null, "Client deleted successfully"));
 });
 
 export { getAllClients, createClient, getClient, updateClient, deleteClient };

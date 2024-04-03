@@ -24,10 +24,9 @@ const handleFileUpload = async (file, next) => {
 
     // Uploading the file to cloudinary
     const result = await cloudinary.uploader.upload(fileNameWithPath, {
-      public_id: `${file.originalName}-${new Date().getTime()}.${
-        file.extension
-      }`,
-      resource_type: "auto",
+      public_id: `${fileNameWithPath.split("/")[2]}`,
+      resource_type: "raw",
+      folder: "client"
     });
 
     // Deleting the file from our server once uploaded to cloudinary
@@ -36,6 +35,7 @@ const handleFileUpload = async (file, next) => {
     // Returning the details of uploaded file
     return {
       fileName: file.originalName,
+      public_id: result.public_id,
       url: result.secure_url,
     };
   } catch (error) {

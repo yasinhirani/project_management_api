@@ -90,6 +90,7 @@ const clientSchema = new mongoose.Schema(
     contractDocuments: [
       {
         fileName: String,
+        public_id: String,
         url: String,
       },
     ],
