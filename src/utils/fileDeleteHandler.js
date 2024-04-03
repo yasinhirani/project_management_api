@@ -1,7 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import ApiError from "./apiError.js";
 
-const deleteFiles = async (file, next) => {
+const deleteFiles = async (file) => {
   try {
     const res = await cloudinary.uploader
       .destroy(file.public_id, { resource_type: "raw" })

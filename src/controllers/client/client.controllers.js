@@ -84,11 +84,13 @@ const createClient = asyncHandler(async (req, res, next) => {
  * Function to update the client details
  */
 const updateClient = asyncHandler(async (req, res, next) => {
+  const clientDocuments = [];
+
   const availableCompanyName = await Client.findOne({
     companyName: req.body.companyName,
   });
 
-  if (availableCompanyName) {
+  if (availableCompanyName && availableCompanyName._id !== req.params.id) {
     return next(
       new ApiError(
         `A client with the same company name ${req.body.companyName} already exist, Please provide a different company name.`,
@@ -97,9 +99,35 @@ const updateClient = asyncHandler(async (req, res, next) => {
     );
   }
 
-  const client = await Client.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
-  });
+  // Checking if the user has uploaded contract documents or not
+  if (req.body.uploadedDocuments && req.body.uploadedDocuments.length > 0) {
+    // If contract documents uploaded, converting them to original file from base64 and upload to cloudinary
+    for (let i = 0; i < req.body.uploadedDocuments.length; i++) {
+      const documentData = await handleFileUpload(
+        req.body.uploadedDocuments[i],
+        next
+      );
+      clientDocuments.push(documentData);
+    }
+  }
+
+  // Checking if user has deleted any document
+  if(req.body.deletedDocuments && req.body.deletedDocuments.length > 0){
+    for(let i = 0; i < req.body.deletedDocuments.length; i++){
+      await deleteFiles(req.body.deletedDocuments[i]);
+    }
+  }
+
+  const client = await Client.findByIdAndUpdate(
+    req.params.id,
+    {
+      ...req.body,
+      contractDocuments: [...req.body.contractDocuments, ...clientDocuments],
+    },
+    {
+      new: true,
+    }
+  );
 
   res
     .status(200)
@@ -118,7 +146,7 @@ const deleteClient = asyncHandler(async (req, res, next) => {
 
   if (client.contractDocuments.length > 0) {
     for (let i = 0; i < client.contractDocuments.length; i++) {
-      await deleteFiles(client.contractDocuments[i], next);
+      await deleteFiles(client.contractDocuments[i]);
     }
   }
 

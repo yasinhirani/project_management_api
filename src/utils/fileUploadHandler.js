@@ -1,6 +1,7 @@
 // import { fileTypeFromBuffer } from "file-type";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
+import ApiError from "./apiError.js";
 
 /**
  * Function to convert base64 content to original file and upload the file to cloudinary
@@ -13,12 +14,6 @@ const handleFileUpload = async (file, next) => {
     file.originalName
   }-${new Date().getTime()}.${file.extension}`;
   try {
-    // Converting base64 file to buffer
-    // const fileBuffer = Buffer.from(file.data, "base64");
-
-    // Getting file type from buffer
-    // const fileType = await fileTypeFromBuffer(fileBuffer);
-
     // Storing the file temporary on the server
     await fs.promises.writeFile(fileNameWithPath, file.data, "base64");
 
@@ -43,7 +38,7 @@ const handleFileUpload = async (file, next) => {
     fs.unlinkSync(fileNameWithPath);
 
     // Throwing error to express
-    next(error);
+    throw new ApiError(error.message, 500);
   }
 };
 
