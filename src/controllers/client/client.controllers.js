@@ -90,7 +90,7 @@ const updateClient = asyncHandler(async (req, res, next) => {
     companyName: req.body.companyName,
   });
 
-  if (availableCompanyName && availableCompanyName._id !== req.params.id) {
+  if (availableCompanyName && availableCompanyName._id.toString() !== req.params.id) {
     return next(
       new ApiError(
         `A client with the same company name ${req.body.companyName} already exist, Please provide a different company name.`,
