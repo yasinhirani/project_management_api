@@ -86,15 +86,24 @@ const createClient = asyncHandler(async (req, res, next) => {
 const updateClient = asyncHandler(async (req, res, next) => {
   const clientDocuments = [];
 
+  const isClientAvailable = await Client.findOne({ _id: req.params.id });
+
+  if (!isClientAvailable) {
+    return next(new ApiError("No client found with the give id", 404));
+  }
+
   const availableCompanyName = await Client.findOne({
     companyName: req.body.companyName,
   });
 
-  if (availableCompanyName && availableCompanyName._id.toString() !== req.params.id) {
+  if (
+    availableCompanyName &&
+    availableCompanyName._id.toString() !== req.params.id
+  ) {
     return next(
       new ApiError(
         `A client with the same company name ${req.body.companyName} already exist, Please provide a different company name.`,
-        404
+        400
       )
     );
   }
@@ -112,8 +121,8 @@ const updateClient = asyncHandler(async (req, res, next) => {
   }
 
   // Checking if user has deleted any document
-  if(req.body.deletedDocuments && req.body.deletedDocuments.length > 0){
-    for(let i = 0; i < req.body.deletedDocuments.length; i++){
+  if (req.body.deletedDocuments && req.body.deletedDocuments.length > 0) {
+    for (let i = 0; i < req.body.deletedDocuments.length; i++) {
       await deleteFiles(req.body.deletedDocuments[i]);
     }
   }
