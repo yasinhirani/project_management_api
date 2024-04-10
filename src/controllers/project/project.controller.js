@@ -164,12 +164,26 @@ const updateProject = asyncHandler(async (req, res, next) => {
     await oldClient.save({ validateBeforeSave: false });
   }
 
+  const updatedProjectLogo = null;
+
+  if (req.body.updatedProjectLogo) {
+    updatedProjectLogo = await handleFileUpload(
+      req.body.updatedProjectLogo,
+      cloudinaryFolderPath.PROJECT
+    );
+
+    await deleteFiles(project.projectLogo.public_id);
+  }
+
   // Update the project
   const updatedProjectDetails = await Project.findByIdAndUpdate(
     req.params.id,
     {
       ...req.body,
       projectDocuments: [...req.body.projectDocuments, ...projectDocuments],
+      projectLogo: updatedProjectLogo
+        ? updatedProjectLogo
+        : project.projectLogo,
     },
     { new: true }
   );
