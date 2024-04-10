@@ -4,7 +4,7 @@ import ApiError from "./apiError.js";
 const deleteFiles = async (file) => {
   try {
     const res = await cloudinary.uploader
-      .destroy(file.public_id, { resource_type: "raw" })
+      .destroy(file, { resource_type: "raw" })
 
     if(res.result !== "ok"){
       throw new Error("There was an issue deleting the client, please try again later");

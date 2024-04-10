@@ -4,6 +4,7 @@ import ApiError from "../../utils/apiError.js";
 import { Client } from "../../models/client/client.model.js";
 import handleFileUpload from "../../utils/fileUploadHandler.js";
 import deleteFiles from "../../utils/fileDeleteHandler.js";
+import cloudinaryFolderPath from "../../constants/cloudinaryFolderPath.constants.js";
 
 /**
  * Function to get all the clients
@@ -62,7 +63,7 @@ const createClient = asyncHandler(async (req, res, next) => {
     for (let i = 0; i < req.body.contractDocuments.length; i++) {
       const documentData = await handleFileUpload(
         req.body.contractDocuments[i],
-        next
+        cloudinaryFolderPath.CLIENT
       );
       clientDocuments.push(documentData);
     }
@@ -114,7 +115,7 @@ const updateClient = asyncHandler(async (req, res, next) => {
     for (let i = 0; i < req.body.uploadedDocuments.length; i++) {
       const documentData = await handleFileUpload(
         req.body.uploadedDocuments[i],
-        next
+        cloudinaryFolderPath.CLIENT
       );
       clientDocuments.push(documentData);
     }
@@ -155,7 +156,7 @@ const deleteClient = asyncHandler(async (req, res, next) => {
 
   if (client.contractDocuments.length > 0) {
     for (let i = 0; i < client.contractDocuments.length; i++) {
-      await deleteFiles(client.contractDocuments[i]);
+      await deleteFiles(client.contractDocuments[i].public_id);
     }
   }
 

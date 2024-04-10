@@ -9,7 +9,7 @@ import ApiError from "./apiError.js";
  * @param {*} next Function used to throw error to express while uploading file
  * @returns Details of uploaded file with original name and its url
  */
-const handleFileUpload = async (file, next) => {
+const handleFileUpload = async (file, cloudinaryFolderPath) => {
   const fileNameWithPath = `public/temp/${
     file.originalName
   }-${new Date().getTime()}.${file.extension}`;
@@ -21,7 +21,7 @@ const handleFileUpload = async (file, next) => {
     const result = await cloudinary.uploader.upload(fileNameWithPath, {
       public_id: `${fileNameWithPath.split("/")[2]}`,
       resource_type: "raw",
-      folder: "client"
+      folder: cloudinaryFolderPath
     });
 
     // Deleting the file from our server once uploaded to cloudinary

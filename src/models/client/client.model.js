@@ -89,6 +89,7 @@ const clientSchema = new mongoose.Schema(
     },
     contractDocuments: [
       {
+        _id: false,
         fileName: String,
         public_id: String,
         url: String,
