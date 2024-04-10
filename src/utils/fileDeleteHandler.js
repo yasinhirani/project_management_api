@@ -7,7 +7,7 @@ const deleteFiles = async (file) => {
       .destroy(file, { resource_type: "raw" })
 
     if(res.result !== "ok"){
-      throw new Error("There was an issue deleting the client, please try again later");
+      throw new Error(`There was an issue deleting the ${file.split("/")[0]}, please try again later`);
     }
   } catch (error) {
     throw new ApiError(error.message);

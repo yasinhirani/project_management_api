@@ -139,6 +139,31 @@ const updateProject = asyncHandler(async (req, res, next) => {
     }
   }
 
+  // Check if the assigned client is changed or not, and if changed replace the client with updated one
+  if (project.assignedClient.toString() !== req.body.assignedClient) {
+    const newClient = await Client.findById(req.body.assignedClient);
+
+    if (!newClient) {
+      return next(new ApiError("Selected client not found", 404));
+    }
+
+    newClient.projects.push(project._id);
+
+    await newClient.save({ validateBeforeSave: false });
+
+    const oldClient = await Client.findById(project.assignedClient);
+
+    const projectIndex = oldClient.projects.findIndex(
+      (project) => project.toString() === project._id.toString()
+    );
+
+    if (projectIndex !== -1) {
+      oldClient.projects.splice(projectIndex, 1);
+    }
+
+    await oldClient.save({ validateBeforeSave: false });
+  }
+
   // Update the project
   const updatedProjectDetails = await Project.findByIdAndUpdate(
     req.params.id,
@@ -305,7 +330,7 @@ const assignResources = asyncHandler(async (req, res, next) => {
   const staffingDetailsIds = [];
   let updatedResources = [];
 
-  if(resources.length > 0){
+  if (resources.length > 0) {
     // Create an staffing for all the resources available in resources array from req.body
     for (let i = 0; i < resources.length; i++) {
       const staffingDetailsObj = await AllocatedHoursDetail.create({
@@ -315,18 +340,18 @@ const assignResources = asyncHandler(async (req, res, next) => {
         startDateOfAllocation: "",
         endDateOfAllocation: "",
       });
-  
+
       const resourceToAssign = await Employee.findById(resources[i]._id);
-  
+
       if (!resourceToAssign) {
         return next(new ApiError("One or more resource not found", 404));
       }
-  
+
       // Push the project id in assignedProjects array for each resource
       resourceToAssign.assignedProjects.push(staffingDetailsObj._id);
-  
+
       resourceToAssign.save({ validateBeforeSave: false });
-  
+
       staffingDetailsIds.push(staffingDetailsObj._id);
     }
     // Creating an array of object that contains employeeDetails with employee id and allocatedHours details with staffing details id
