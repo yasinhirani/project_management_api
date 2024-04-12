@@ -1,6 +1,6 @@
-import { app } from "./app.js";
+import { app } from "./app";
 import dotenv from "dotenv";
-import connectDB from "./db/db.js";
+import connectDB from "./db/db";
 import { v2 as cloudinary } from "cloudinary";
 
 dotenv.config({
@@ -20,7 +20,7 @@ connectDB()
       console.log(`Server listening on port ${process.env.PORT}`);
     });
   })
-  .catch((err) => {
+  .catch((err: any) => {
     console.log(err.message);
     process.exit(1);
   });

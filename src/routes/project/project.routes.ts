@@ -6,7 +6,7 @@ import {
   updateProject,
   deleteProject,
   assignResources,
-} from "../../controllers/project/project.controller.js";
+} from "../../controllers/project/project.controller";
 
 const router = express.Router();
 

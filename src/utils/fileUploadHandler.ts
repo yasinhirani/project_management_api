@@ -1,7 +1,13 @@
 // import { fileTypeFromBuffer } from "file-type";
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import ApiError from "./apiError.js";
+import ApiError from "./apiError";
+
+interface IFileUpload{
+  originalName: string;
+  extension: string;
+  data: string;
+}
 
 /**
  * Function to convert base64 content to original file and upload the file to cloudinary
@@ -9,7 +15,7 @@ import ApiError from "./apiError.js";
  * @param {*} next Function used to throw error to express while uploading file
  * @returns Details of uploaded file with original name and its url
  */
-const handleFileUpload = async (file, cloudinaryFolderPath) => {
+const handleFileUpload = async (file: IFileUpload, cloudinaryFolderPath: string) => {
   const fileNameWithPath = `public/temp/${
     file.originalName
   }-${new Date().getTime()}.${file.extension}`;
@@ -33,7 +39,7 @@ const handleFileUpload = async (file, cloudinaryFolderPath) => {
       public_id: result.public_id,
       url: result.secure_url,
     };
-  } catch (error) {
+  } catch (error: any) {
     // Catching errors, if any and if error, deleting the file from the server
     fs.unlinkSync(fileNameWithPath);
 
