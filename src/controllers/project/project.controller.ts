@@ -183,7 +183,9 @@ const updateProject = asyncHandler(
         cloudinaryFolderPath.PROJECT
       );
 
-      await deleteFiles(project.projectLogo.public_id!);
+      if (project.projectLogo) {
+        await deleteFiles(project.projectLogo.public_id!);
+      }
     }
 
     // Update the project
