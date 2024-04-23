@@ -1,0 +1,75 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Client {
+  id                             String    @id @default(uuid())
+  clientName                     String    @map("client_name")
+  email                          String
+  contactNumber                  Int       @map("contact_number")
+  address                        String
+  country                        String
+  role                           String
+  linkedinLink                   String    @default("") @map("linkedin_link")
+  facebookLink                   String    @default("") @map("facebook_link")
+  companyName                    String    @map("company_name")
+  companyAddress                 String    @map("company_address")
+  dateOfEstablishment            String    @map("date_of_establishment")
+  industryType                   String[]  @map("industry_type")
+  preferredCommunicationMethod   String[]  @map("preferred_communication_method")
+  preferredCommunicationLanguage String[]  @map("preferred_communication_language")
+  preferredMeetingTime           String    @map("preferred_meeting_time")
+  annualRevenueRange             String    @map("annual_revenue_range")
+  targetAudience                 String    @default("") @map("target_audience")
+  referralSource                 String    @default("") @map("referral_source")
+  clientExpectation              String    @default("") @map("client_expectation")
+  projectIds                     String[]  @default([])
+  contractDocuments              Json[]    @default([]) @map("contract_documents")
+  createdAt                      DateTime  @default(now()) @map("created_at")
+  updatedAt                      DateTime  @default(now()) @map("updated_at")
+  projects                       Project[]
+
+  @@map("clients")
+}
+
+model Project {
+  id                 String   @id @default(uuid())
+  projectName        String   @map("project_name")
+  projectDescription String   @map("project_description")
+  projectType        String   @map("project_type")
+  softwareCategory   String   @map("software_category")
+  projectBudget      Json     @map("project_budget")
+  projectBudgetType  String   @map("project_budget_type")
+  assignedClientId   String   @map("assigned_client_id")
+  assignedClient     Client   @relation(fields: [assignedClientId], references: [id])
+  projectPriority    String   @map("project_priority")
+  projectStatus      String   @map("project_status")
+  startDate          String   @map("start_date")
+  endDate            String   @map("end_date")
+  projectLogo        Json     @default("{}") @map("project_logo")
+  projectDocuments   Json[]   @map("project_documents")
+  assignedResources  Json[]   @map("assigned_resources")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @default(now()) @map("updated_at")
+
+  @@map("projects")
+}
+
+model CountriesList {
+  id   Int    @id @default(autoincrement())
+  name String
+  code String
+
+  @@map("countries_list")
+}

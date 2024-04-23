@@ -3,20 +3,22 @@ import asyncHandler from "../../utils/asyncHandler";
 import ApiResponse from "../../utils/apiResponse";
 import ApiError from "../../utils/apiError";
 import { Project } from "../../models/project/project.model";
-import { Client } from "../../models/client/client.model";
+// import { Client } from "../../models/client/client.model";
 import { Employee } from "../../models/employee/employee.model";
 import { AllocatedHoursDetail } from "../../models/allocatedHoursDetails/allocatedHoursDetails.model";
 import handleFileUpload from "../../utils/fileUploadHandler";
 import cloudinaryFolderPath from "../../constants/cloudinaryFolderPath.constants";
 import deleteFiles from "../../utils/fileDeleteHandler";
 import { NextFunction, Request, Response } from "express";
+import prisma from "../../utils/prisma";
+import { JsonValue } from "@prisma/client/runtime/library";
 
 /**
  * Function to get all the projects
  */
 const getAllProjects = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const projects = await Project.find({});
+    const projects = await prisma.project.findMany({});
 
     res.status(200).json(new ApiResponse({ projects }));
   }
@@ -28,33 +30,40 @@ const getAllProjects = asyncHandler(
 const getProject = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     // Find the project by id and populate all the details of clients and assigned resources by id to the actual data
-    const project = await Project.findOne({ _id: req.params.id })
-      .populate({
-        path: "assignedClient",
-        select: "clientName email companyName",
-      })
-      .populate({
-        path: "assignedResources",
-        populate: {
-          path: "resources",
-          populate: {
-            path: "employeeDetail",
-            model: "Employee",
-            select: "-assignedProjects",
-          },
-        },
-      })
-      .populate({
-        path: "assignedResources",
-        populate: {
-          path: "resources",
-          populate: {
-            path: "allocatedHoursDetails",
-            model: "AllocatedHoursDetail",
-            select: "-projectId -resourceId",
-          },
-        },
-      });
+    // const project = await Project.findOne({ _id: req.params.id })
+    //   .populate({
+    //     path: "assignedClient",
+    //     select: "clientName email companyName",
+    //   })
+    //   .populate({
+    //     path: "assignedResources",
+    //     populate: {
+    //       path: "resources",
+    //       populate: {
+    //         path: "employeeDetail",
+    //         model: "Employee",
+    //         select: "-assignedProjects",
+    //       },
+    //     },
+    //   })
+    //   .populate({
+    //     path: "assignedResources",
+    //     populate: {
+    //       path: "resources",
+    //       populate: {
+    //         path: "allocatedHoursDetails",
+    //         model: "AllocatedHoursDetail",
+    //         select: "-projectId -resourceId",
+    //       },
+    //     },
+    //   });
+
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+      include: {
+        assignedClient: true,
+      },
+    });
 
     if (!project) {
       return next(new ApiError("No project found with the given Id", 404));
@@ -72,7 +81,9 @@ const createProject = asyncHandler(
     let projectLogoDetails = null;
     const projectDocuments = [];
 
-    const client = await Client.findOne({ _id: req.body.assignedClient });
+    const client = await prisma.client.findUnique({
+      where: { id: req.body.assignedClientId },
+    });
 
     if (!client) {
       return next(
@@ -91,7 +102,11 @@ const createProject = asyncHandler(
     // Upload project documents to cloudinary, if any
     if (req.body.projectDocuments && req.body.projectDocuments.length > 0) {
       for (let i = 0; i < req.body.projectDocuments.length; i++) {
-        const documentDetails = await handleFileUpload(
+        const documentDetails: {
+          fileName: string;
+          public_id: string;
+          url: string;
+        } = await handleFileUpload(
           req.body.projectDocuments[i],
           cloudinaryFolderPath.PROJECT
         );
@@ -100,16 +115,19 @@ const createProject = asyncHandler(
     }
 
     // Create the project
-    const project = await Project.create({
-      ...req.body,
-      projectLogo: projectLogoDetails,
-      projectDocuments,
+    const project = await prisma.project.create({
+      data: {
+        ...req.body,
+        projectLogo: projectLogoDetails,
+        projectDocuments,
+      },
     });
 
     // Push the project id to the projects array of assigned client and save it
-    client.projects.push(project._id);
-
-    await client.save({ validateBeforeSave: false });
+    await prisma.client.update({
+      where: { id: req.body.assignedClientId },
+      data: { projectIds: [...client.projectIds, project.id] },
+    });
 
     res
       .status(201)
@@ -124,7 +142,9 @@ const updateProject = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const projectDocuments = [];
 
-    const project = await Project.findById(req.params.id);
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+    });
 
     if (!project) {
       return next(new ApiError("No project found with the given Id", 404));
@@ -144,34 +164,38 @@ const updateProject = asyncHandler(
     // Delete the documents, if any
     if (req.body.deletedDocuments && req.body.deletedDocuments.length > 0) {
       for (let i = 0; i < req.body.deletedDocuments.length; i++) {
-        await deleteFiles(req.body.deletedDocuments[i]);
+        await deleteFiles(req.body.deletedDocuments[i].public_id);
       }
     }
 
     // Check if the assigned client is changed or not, and if changed replace the client with updated one
-    if (project.assignedClient.toString() !== req.body.assignedClient) {
-      const newClient = await Client.findById(req.body.assignedClient);
+    if (project.assignedClientId !== req.body.assignedClient) {
+      const newClient = await prisma.client.findUnique({
+        where: { id: req.body.assignedClientId },
+      });
 
       if (!newClient) {
         return next(new ApiError("Selected client not found", 404));
       }
 
-      newClient.projects.push(project._id);
+      await prisma.client.update({
+        where: { id: req.body.assignedClientId },
+        data: { projectIds: [...newClient.projectIds, project.id] },
+      });
 
-      await newClient.save({ validateBeforeSave: false });
-
-      const oldClient = await Client.findById(project.assignedClient);
+      const oldClient = await prisma.client.findUnique({
+        where: { id: project.assignedClientId },
+      });
 
       if (oldClient) {
-        const projectIndex = oldClient.projects.findIndex(
-          (project) => project.toString() === project._id.toString()
-        );
-
-        if (projectIndex !== -1) {
-          oldClient.projects.splice(projectIndex, 1);
-        }
-
-        await oldClient.save({ validateBeforeSave: false });
+        await prisma.client.update({
+          where: { id: oldClient.id },
+          data: {
+            projectIds: oldClient.projectIds.filter(
+              (id) => id !== req.params.id
+            ),
+          },
+        });
       }
     }
 
@@ -183,21 +207,38 @@ const updateProject = asyncHandler(
         cloudinaryFolderPath.PROJECT
       );
 
-      await deleteFiles(project.projectLogo.public_id!);
+      const oldProjectLogo: JsonValue = project.projectLogo;
+
+      if (project.projectLogo) {
+        await deleteFiles((oldProjectLogo as { public_id: string }).public_id);
+      }
+    }
+
+    const excludeFields = [
+      "uploadedDocuments",
+      "deletedDocuments",
+      "updatedProjectLogo",
+    ];
+    const updatedReqBody: any = {};
+
+    for (let i = 0; i < Object.keys(req.body).length; i++) {
+      const [key, value] = Object.entries(req.body)[i];
+      if (!excludeFields.includes(key)) {
+        updatedReqBody[key] = value;
+      }
     }
 
     // Update the project
-    const updatedProjectDetails = await Project.findByIdAndUpdate(
-      req.params.id,
-      {
-        ...req.body,
+    const updatedProjectDetails = await prisma.project.update({
+      where: { id: req.params.id },
+      data: {
+        ...updatedReqBody,
         projectDocuments: [...req.body.projectDocuments, ...projectDocuments],
         projectLogo: updatedProjectLogo
           ? updatedProjectLogo
           : project.projectLogo,
       },
-      { new: true }
-    );
+    });
 
     res
       .status(200)
@@ -215,7 +256,9 @@ const updateProject = asyncHandler(
  */
 const deleteProject = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const project = await Project.findById(req.params.id);
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+    });
 
     if (!project) {
       return next(new ApiError("No project found with the given Id", 404));
@@ -224,64 +267,68 @@ const deleteProject = asyncHandler(
     // Delete the project documents if any
     if (project.projectDocuments.length > 0) {
       for (let i = 0; i < project.projectDocuments.length; i++) {
-        await deleteFiles(project.projectDocuments[i].public_id!);
+        const projectDocument: JsonValue = project.projectDocuments[i];
+        await deleteFiles((projectDocument as { public_id: string }).public_id);
       }
     }
 
-    const client = await Client.findById(project.assignedClient);
+    if (project.projectLogo) {
+      const projectLogo: JsonValue = project.projectLogo;
+      await deleteFiles((projectLogo as { public_id: string }).public_id!);
+    }
+
+    const client = await prisma.client.findUnique({
+      where: { id: project.assignedClientId },
+    });
 
     if (client) {
-      // Find the project index in clients project array
-      const projectIdIndex = client.projects.findIndex(
-        (projectId) => projectId.toString() === req.params.id
-      );
-
-      if (projectIdIndex !== -1) {
-        // If index is found, then delete the project from clients project array and save it
-        client.projects.splice(projectIdIndex, 1);
-        await client.save({ validateBeforeSave: false });
-      }
-    }
-
-    if (project.assignedResources.length > 0) {
-      // Get all the resource staffing details where project id is equal to the project id to be deleted
-      const resourceStaffingDetails = await AllocatedHoursDetail.find({
-        projectId: project._id,
+      await prisma.client.update({
+        where: { id: project.assignedClientId },
+        data: {
+          projectIds: client.projectIds.filter((id) => id !== project.id),
+        },
       });
-
-      if (resourceStaffingDetails && resourceStaffingDetails.length > 0) {
-        // Loop over all the resource staffing details
-        for (let i = 0; i < resourceStaffingDetails.length; i++) {
-          // Find the employee who is staffed in the project to be deleted
-          const employee = await Employee.findById(
-            resourceStaffingDetails[i].resourceId
-          );
-
-          if (employee) {
-            // Get the index number where the staffing details id is present in assignedProjects array of employee
-            const staffingDetailsIndex = employee.assignedProjects.findIndex(
-              (project) =>
-                project.toString() === resourceStaffingDetails[i]._id.toString()
-            );
-
-            if (staffingDetailsIndex !== -1) {
-              // Remove that id from assignedProjects array f employee and save it
-              employee.assignedProjects.splice(staffingDetailsIndex, 1);
-
-              await employee.save({ validateBeforeSave: false });
-            }
-          }
-
-          // Delete the staffing details
-          await AllocatedHoursDetail.findByIdAndDelete(
-            resourceStaffingDetails[i]._id
-          );
-        }
-      }
     }
+
+    // if (project.assignedResources.length > 0) {
+    //   // Get all the resource staffing details where project id is equal to the project id to be deleted
+    //   const resourceStaffingDetails = await AllocatedHoursDetail.find({
+    //     projectId: project.id,
+    //   });
+
+    //   if (resourceStaffingDetails && resourceStaffingDetails.length > 0) {
+    //     // Loop over all the resource staffing details
+    //     for (let i = 0; i < resourceStaffingDetails.length; i++) {
+    //       // Find the employee who is staffed in the project to be deleted
+    //       const employee = await Employee.findById(
+    //         resourceStaffingDetails[i].resourceId
+    //       );
+
+    //       if (employee) {
+    //         // Get the index number where the staffing details id is present in assignedProjects array of employee
+    //         const staffingDetailsIndex = employee.assignedProjects.findIndex(
+    //           (project) =>
+    //             project.toString() === resourceStaffingDetails[i]._id.toString()
+    //         );
+
+    //         if (staffingDetailsIndex !== -1) {
+    //           // Remove that id from assignedProjects array f employee and save it
+    //           employee.assignedProjects.splice(staffingDetailsIndex, 1);
+
+    //           await employee.save({ validateBeforeSave: false });
+    //         }
+    //       }
+
+    //       // Delete the staffing details
+    //       await AllocatedHoursDetail.findByIdAndDelete(
+    //         resourceStaffingDetails[i]._id
+    //       );
+    //     }
+    //   }
+    // }
 
     // Delete the project
-    await Project.findByIdAndDelete(req.params.id);
+    await prisma.project.delete({ where: { id: project.id } });
 
     res.status(200).json(new ApiResponse(null, "Project deleted successfully"));
   }
