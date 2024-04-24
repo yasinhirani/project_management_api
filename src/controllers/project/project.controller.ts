@@ -164,7 +164,7 @@ const updateProject = asyncHandler(
 
       if (oldClient) {
         const projectIndex = oldClient.projects.findIndex(
-          (project) => project.toString() === project._id.toString()
+          (projectId) => projectId.toString() === project._id.toString()
         );
 
         if (projectIndex !== -1) {
