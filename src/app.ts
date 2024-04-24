@@ -4,7 +4,7 @@ import clientRoutes from "./routes/client/client.routes";
 import projectRoutes from "./routes/project/project.routes";
 import employeeRoutes from "./routes/employee/employee.routes";
 import countryListRoutes from "./routes/countryList/countryList.routes";
-import domainRoutes from "./routes/domain/domain.routes";
+import {domainRouter, designationRouter} from "./routes/domain_designation/domain_designation.routes";
 import errorHandler from "./utils/errorHandler";
 import ApiError from "./utils/apiError";
 
@@ -20,7 +20,8 @@ app.use("/api/clients", clientRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/employees", employeeRoutes);
 app.use("/api/countryList", countryListRoutes);
-app.use("/api/domains", domainRoutes);
+app.use("/api/domains", domainRouter);
+app.use("/api/designations", designationRouter);
 
 app.all("*", (req: Request, res: Response, next: NextFunction) => {
   next(new ApiError(`Cannot ${req.method} ${req.path}. The URL is currently unaccessible`, 404));
