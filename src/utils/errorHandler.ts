@@ -51,6 +51,7 @@ const errorResponseProduction = (err: IError | any, res: Response) => {
     res.status(err.statusCode).json({
       success: false,
       message: "Something went wrong!",
+      error: err,
       data: null,
     });
   }
