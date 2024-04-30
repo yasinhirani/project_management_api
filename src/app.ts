@@ -7,6 +7,7 @@ import countryListRoutes from "./routes/countryList/countryList.routes";
 import {domainRouter, designationRouter} from "./routes/domain_designation/domain_designation.routes";
 import errorHandler from "./utils/errorHandler";
 import ApiError from "./utils/apiError";
+import { designationRouter, domainRouter } from "./routes/domain_designation/domain_designation.routes";
 
 const app = express();
 

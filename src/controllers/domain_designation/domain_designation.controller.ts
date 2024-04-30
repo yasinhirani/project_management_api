@@ -1,11 +1,11 @@
 import { NextFunction, Request, Response } from "express";
-import { Domain, Designation } from "../../models/domain_designation/domain_designation.model";
 import asyncHandler from "../../utils/asyncHandler";
 import ApiResponse from "../../utils/apiResponse";
+import prisma from "../../utils/prisma";
 
 const getDomains = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const domains = await Domain.find({});
+    const domains = await prisma.domainList.findMany();
 
     res.status(200).json(new ApiResponse({ domains }));
   }
@@ -13,7 +13,7 @@ const getDomains = asyncHandler(
 
 const getDesignations = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const designations = await Designation.find({});
+    const designations = await prisma.designationList.findMany();
 
     res.status(200).json(new ApiResponse({ designations }));
   }
