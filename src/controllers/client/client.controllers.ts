@@ -155,7 +155,7 @@ const updateClient = asyncHandler(
     }
 
     const updatedRequestBody: any = {};
-    const excludeFields: string[] = ["uploadedDocuments", "deletedDocuments"];
+    const excludeFields: string[] = ["uploadedDocuments", "deletedDocuments", "id", "projects", "projectIds"];
 
     for (let i = 0; i < Object.keys(req.body).length; i++) {
       const [key, value] = Object.entries(req.body)[i];
