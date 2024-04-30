@@ -44,24 +44,25 @@ model Client {
 }
 
 model Project {
-  id                 String   @id @default(uuid())
-  projectName        String   @map("project_name")
-  projectDescription String   @map("project_description")
-  projectType        String   @map("project_type")
-  softwareCategory   String   @map("software_category")
-  projectBudget      Json     @map("project_budget")
-  projectBudgetType  String   @map("project_budget_type")
-  assignedClientId   String   @map("assigned_client_id")
-  assignedClient     Client   @relation(fields: [assignedClientId], references: [id])
-  projectPriority    String   @map("project_priority")
-  projectStatus      String   @map("project_status")
-  startDate          String   @map("start_date")
-  endDate            String   @map("end_date")
-  projectLogo        Json     @default("{}") @map("project_logo")
-  projectDocuments   Json[]   @map("project_documents")
-  assignedResources  Json[]   @map("assigned_resources")
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @default(now()) @map("updated_at")
+  id                   String            @id @default(uuid())
+  projectName          String            @map("project_name")
+  projectDescription   String            @map("project_description")
+  projectType          String            @map("project_type")
+  softwareCategory     String            @map("software_category")
+  projectBudget        Json              @map("project_budget")
+  projectBudgetType    String            @map("project_budget_type")
+  assignedClientId     String            @map("assigned_client_id")
+  assignedClient       Client            @relation(fields: [assignedClientId], references: [id])
+  projectPriority      String            @map("project_priority")
+  projectStatus        String            @map("project_status")
+  startDate            String            @map("start_date")
+  endDate              String            @map("end_date")
+  projectLogo          Json              @default("{}") @map("project_logo")
+  projectDocuments     Json[]            @map("project_documents")
+  assignedResourcesIds String[]          @map("assigned_resources")
+  assignedResources    StaffingDetails[]
+  createdAt            DateTime          @default(now()) @map("created_at")
+  updatedAt            DateTime          @default(now()) @map("updated_at")
 
   @@map("projects")
 }
@@ -72,4 +73,75 @@ model CountriesList {
   code String
 
   @@map("countries_list")
+}
+
+model DomainList {
+  id   Int    @id @default(autoincrement())
+  name String @default("")
+
+  @@map("domains_list")
+}
+
+model DesignationList {
+  id   Int    @id @default(autoincrement())
+  name String @default("")
+
+  @@map("designations_list")
+}
+
+// model StaffingDetails {
+//   id           String              @id @default(uuid())
+//   domain       String
+//   designations String[]
+//   resourceIds  String[]
+//   resources    AssignedResources[] @relation(fields: [resourceIds], references: [id])
+//   project      Project?            @relation(fields: [projectId], references: [id])
+//   projectId    String?
+
+//   @@map("staffing_details")
+// }
+
+// model AssignedResources {
+//   id                    String           @id @default(uuid())
+//   projectId             String           @map("project_id")
+//   employeeId            String           @map("employee_Id")
+//   project_details       Project          @relation(fields: [projectId], references: [id])
+//   employee_details      Employee         @relation(fields: [employeeId], references: [id])
+//   allocatedHours        Json             @default("{}")
+//   startDateOfAllocation String           @default("") @map("start_date_of_allocation")
+//   endDateOfAllocation   String           @default("") @map("end_date_of_allocation")
+//   StaffingDetails       StaffingDetails? @relation(fields: [staffingDetailsId], references: [id])
+//   staffingDetailsId     String?
+
+//   @@map("assigned_resources")
+// }
+
+model StaffingDetails {
+  id                    String    @id @default(uuid())
+  projectId             String    @map("project_id")
+  resourceId            String    @map("resource_id")
+  allocatedHours        Json      @default("{}") @map("allocated_hours")
+  startDateOfAllocation String    @default("") @map("start_date_of_allocation")
+  endDateOfAllocation   String    @default("") @map("end_date_of_allocation")
+  isForcedStaffed       Boolean   @default(false) @map("is_forced_staffed")
+  employee_details      Employee? @relation(fields: [resourceId], references: [id])
+  project_details       Project?  @relation(fields: [projectId], references: [id])
+
+  @@map("staffing_details")
+}
+
+model Employee {
+  id                  String            @id @default(uuid())
+  name                String
+  emailId             String            @map("email_id")
+  contactNumber       String            @map("contact_number")
+  domain              String
+  designation         String
+  dateOfJoining       String            @map("date_of_joining")
+  reportingManager    String            @map("reporting_manager")
+  empId               String            @map("emp_id")
+  assignedProjectsIds String[]          @map("assigned_project_ids")
+  assignedProjects    StaffingDetails[]
+
+  @@map("employees")
 }
