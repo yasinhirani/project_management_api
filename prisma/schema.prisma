@@ -17,12 +17,12 @@ model Client {
   id                             String    @id @default(uuid())
   clientName                     String    @map("client_name")
   email                          String
-  contactNumber                  Int       @map("contact_number")
+  contactNumber                  String       @map("contact_number")
   address                        String
   country                        String
   role                           String
-  linkedinLink                   String    @default("") @map("linkedin_link")
-  facebookLink                   String    @default("") @map("facebook_link")
+  linkedinUrl                    String    @default("") @map("linkedin_url")
+  facebookUrl                    String    @default("") @map("facebook_url")
   companyName                    String    @map("company_name")
   companyAddress                 String    @map("company_address")
   dateOfEstablishment            String    @map("date_of_establishment")
