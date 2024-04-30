@@ -161,7 +161,7 @@ const updateProject = asyncHandler(
     // Delete the documents, if any
     if (req.body.deletedDocuments && req.body.deletedDocuments.length > 0) {
       for (let i = 0; i < req.body.deletedDocuments.length; i++) {
-        await deleteFiles(req.body.deletedDocuments[i].public_id);
+        await deleteFiles(req.body.deletedDocuments[i]);
       }
     }
 
@@ -215,6 +215,9 @@ const updateProject = asyncHandler(
       "uploadedDocuments",
       "deletedDocuments",
       "updatedProjectLogo",
+      "id",
+      "assignedResourcesIds",
+      "assignedResources"
     ];
     const updatedReqBody: any = {};
 

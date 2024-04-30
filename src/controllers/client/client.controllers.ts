@@ -150,7 +150,7 @@ const updateClient = asyncHandler(
     // Checking if user has deleted any document
     if (req.body.deletedDocuments && req.body.deletedDocuments.length > 0) {
       for (let i = 0; i < req.body.deletedDocuments.length; i++) {
-        await deleteFiles(req.body.deletedDocuments[i].public_id);
+        await deleteFiles(req.body.deletedDocuments[i]);
       }
     }
 
