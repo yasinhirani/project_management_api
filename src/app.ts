@@ -4,7 +4,6 @@ import clientRoutes from "./routes/client/client.routes";
 import projectRoutes from "./routes/project/project.routes";
 import employeeRoutes from "./routes/employee/employee.routes";
 import countryListRoutes from "./routes/countryList/countryList.routes";
-import {domainRouter, designationRouter} from "./routes/domain_designation/domain_designation.routes";
 import errorHandler from "./utils/errorHandler";
 import ApiError from "./utils/apiError";
 import { designationRouter, domainRouter } from "./routes/domain_designation/domain_designation.routes";
