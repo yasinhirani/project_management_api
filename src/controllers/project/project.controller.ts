@@ -66,7 +66,7 @@ const getProject = asyncHandler(
       );
     }
 
-    res.status(200).json({ project });
+    res.status(200).json(new ApiResponse({ project }));
   }
 );
 
