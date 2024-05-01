@@ -50,6 +50,7 @@ const getProject = asyncHandler(
         (resource) => {
           return {
             ...resource.employee_details,
+            staffingDetailId: resource.id,
             allocatedHours: resource.allocatedHours,
             startDateOfAllocation: resource.startDateOfAllocation,
             endDateOfAllocation: resource.endDateOfAllocation,
@@ -522,6 +523,15 @@ const deleteResource = asyncHandler(
 const getStaffingSheet = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const assignedResources: any = [];
+
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+    });
+
+    if (!project) {
+      return next(new ApiError("No project found with the given Id", 404));
+    }
+
     const domains: any =
       await prisma.$queryRaw`SELECT DISTINCT employees.domain FROM staffing_details 
               LEFT JOIN employees ON staffing_details.resource_id = employees.id 
@@ -582,6 +592,12 @@ const getStaffingSheet = asyncHandler(
 
     res.status(200).json(
       new ApiResponse({
+        projectDetails: {
+          id: project.id,
+          projectName: project.projectName,
+          startDate: project.startDate,
+          endDate: project.endDate,
+        },
         staffingSheet: assignedResources,
       })
     );
@@ -595,7 +611,9 @@ const searchProject = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.query;
     const projects =
-      await prisma.$queryRaw`SELECT * FROM projects WHERE project_name ILIKE ${'%'+search+'%'}`;
+      await prisma.$queryRaw`SELECT * FROM projects WHERE project_name ILIKE ${
+        "%" + search + "%"
+      }`;
 
     res.status(200).json(new ApiResponse({ projects }));
   }
