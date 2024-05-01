@@ -217,7 +217,7 @@ const updateProject = asyncHandler(
       "updatedProjectLogo",
       "id",
       "assignedResourcesIds",
-      "assignedResources"
+      "assignedResources",
     ];
     const updatedReqBody: any = {};
 
@@ -588,6 +588,19 @@ const getStaffingSheet = asyncHandler(
   }
 );
 
+/**
+ * Function to search for the projects
+ */
+const searchProject = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { search } = req.query;
+    const projects =
+      await prisma.$queryRaw`SELECT * FROM projects WHERE project_name ILIKE ${'%'+search+'%'}`;
+
+    res.status(200).json(new ApiResponse({ projects }));
+  }
+);
+
 export {
   getAllProjects,
   getProject,
@@ -597,4 +610,5 @@ export {
   assignResources,
   deleteResource,
   getStaffingSheet,
+  searchProject,
 };

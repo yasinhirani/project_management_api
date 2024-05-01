@@ -213,4 +213,26 @@ const deleteClient = asyncHandler(
   }
 );
 
-export { getAllClients, createClient, getClient, updateClient, deleteClient };
+/**
+ * Function to search for the clients
+ */
+const searchClient = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { search } = req.query;
+    const clients =
+      await prisma.$queryRaw`SELECT * FROM clients WHERE client_name ILIKE ${
+        "%" + search + "%"
+      }`;
+
+    res.status(200).json(new ApiResponse({ clients }));
+  }
+);
+
+export {
+  getAllClients,
+  createClient,
+  getClient,
+  updateClient,
+  deleteClient,
+  searchClient,
+};
