@@ -30,6 +30,7 @@ const getAllEmployees = asyncHandler(
           assignedProjects: {
             select: {
               id: true,
+              projectId: true,
               allocatedHours: true,
               startDateOfAllocation: true,
               endDateOfAllocation: true,
