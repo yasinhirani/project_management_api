@@ -18,7 +18,7 @@ import { JsonValue } from "@prisma/client/runtime/library";
  */
 const getAllProjects = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const projects = await prisma.project.findMany({});
+    const projects = await prisma.project.findMany({orderBy: {createdAt: "desc"}});
 
     res.status(200).json(new ApiResponse({ projects }));
   }
