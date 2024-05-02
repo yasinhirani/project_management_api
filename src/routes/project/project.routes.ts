@@ -9,6 +9,7 @@ import {
   deleteResource,
   getStaffingSheet,
   searchProject,
+  allocateHours,
 } from "../../controllers/project/project.controller";
 
 const router = express.Router();
@@ -19,5 +20,6 @@ router.route("/:id").get(getProject).put(updateProject).delete(deleteProject);
 router.route("/assignResources/:id").post(assignResources);
 router.route("/deleteResource/:id").delete(deleteResource);
 router.route("/staffingSheet/:id").get(getStaffingSheet);
+router.route("/allocateHours").post(allocateHours);
 
 export default router;

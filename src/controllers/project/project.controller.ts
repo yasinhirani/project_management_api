@@ -619,6 +619,41 @@ const searchProject = asyncHandler(
   }
 );
 
+const allocateHours = asyncHandler(
+  async (req: Request, res: Response, next: NextFunction) => {
+    const { projectId, staffingDetailId } = req.query as any;
+    const project = await prisma.project.findUnique({
+      where: { id: projectId },
+    });
+
+    if (!project) {
+      return next(new ApiError("No project found with the given Id", 404));
+    }
+
+    const staffingDetail = await prisma.staffingDetails.findUnique({
+      where: { id: staffingDetailId },
+    });
+
+    if (!staffingDetail) {
+      return next(
+        new ApiError(
+          "No staffing detail found with the given Id, please make sure the employee is assigned to the project",
+          404
+        )
+      );
+    }
+
+    await prisma.staffingDetails.update({
+      where: { id: staffingDetailId },
+      data: {
+        ...req.body,
+      },
+    });
+
+    res.status(200).json(new ApiResponse(null, "Hours allocated successfully"));
+  }
+);
+
 export {
   getAllProjects,
   getProject,
@@ -629,4 +664,5 @@ export {
   deleteResource,
   getStaffingSheet,
   searchProject,
+  allocateHours,
 };
