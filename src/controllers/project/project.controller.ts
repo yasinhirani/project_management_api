@@ -167,7 +167,7 @@ const updateProject = asyncHandler(
     }
 
     // Check if the assigned client is changed or not, and if changed replace the client with updated one
-    if (project.assignedClientId !== req.body.assignedClient) {
+    if (project.assignedClientId !== req.body.assignedClientId) {
       const newClient = await prisma.client.findUnique({
         where: { id: req.body.assignedClientId },
       });
