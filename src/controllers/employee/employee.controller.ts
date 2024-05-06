@@ -23,7 +23,11 @@ const getAllEmployees = asyncHandler(
 
     let employees = null;
 
-    if (Object.keys(searchQuery).length > 0) {
+    if (
+      Object.keys(searchQuery).length > 0 &&
+      searchQuery.designation &&
+      searchQuery.domain
+    ) {
       employees = await prisma.employee.findMany({
         where: { ...searchQuery },
         include: {
@@ -40,7 +44,9 @@ const getAllEmployees = asyncHandler(
       });
     } else {
       employees = await prisma.employee.findMany({
-        where: { ...searchQuery },
+        where: {
+          name: { contains: searchQuery.search as string, mode: "insensitive" },
+        },
       });
     }
 

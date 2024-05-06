@@ -20,7 +20,9 @@ const getAllProjects = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { search } = req.query;
     const projects = await prisma.project.findMany({
-      where: { projectName: { contains: search as string } },
+      where: {
+        projectName: { contains: search as string, mode: "insensitive" },
+      },
       orderBy: { createdAt: "desc" },
     });
 

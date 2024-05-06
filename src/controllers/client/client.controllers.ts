@@ -35,7 +35,7 @@ const getAllClients = asyncHandler(
       });
     } else {
       clients = await prisma.client.findMany({
-        where: { clientName: { contains: search } },
+        where: { clientName: { contains: search, mode: "insensitive" } },
         orderBy: {
           createdAt: "desc",
         },
