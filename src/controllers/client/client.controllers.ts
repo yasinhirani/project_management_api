@@ -17,6 +17,7 @@ const getAllClients = asyncHandler(
     const searchQuery = req.query;
 
     const fields = searchQuery.fields as string;
+    const search = searchQuery.search as string;
 
     let clients = null;
 
@@ -33,7 +34,12 @@ const getAllClients = asyncHandler(
           }, {}),
       });
     } else {
-      clients = await prisma.client.findMany({});
+      clients = await prisma.client.findMany({
+        where: { clientName: { contains: search } },
+        orderBy: {
+          createdAt: "desc",
+        },
+      });
     }
 
     res.status(200).json(new ApiResponse({ clients }));
@@ -155,7 +161,13 @@ const updateClient = asyncHandler(
     }
 
     const updatedRequestBody: any = {};
-    const excludeFields: string[] = ["uploadedDocuments", "deletedDocuments", "id", "projects", "projectIds"];
+    const excludeFields: string[] = [
+      "uploadedDocuments",
+      "deletedDocuments",
+      "id",
+      "projects",
+      "projectIds",
+    ];
 
     for (let i = 0; i < Object.keys(req.body).length; i++) {
       const [key, value] = Object.entries(req.body)[i];
@@ -213,26 +225,4 @@ const deleteClient = asyncHandler(
   }
 );
 
-/**
- * Function to search for the clients
- */
-const searchClient = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { search } = req.query;
-    const clients =
-      await prisma.$queryRaw`SELECT * FROM clients WHERE client_name ILIKE ${
-        "%" + search + "%"
-      }`;
-
-    res.status(200).json(new ApiResponse({ clients }));
-  }
-);
-
-export {
-  getAllClients,
-  createClient,
-  getClient,
-  updateClient,
-  deleteClient,
-  searchClient,
-};
+export { getAllClients, createClient, getClient, updateClient, deleteClient };

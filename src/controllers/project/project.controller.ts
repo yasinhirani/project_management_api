@@ -18,7 +18,11 @@ import { JsonValue } from "@prisma/client/runtime/library";
  */
 const getAllProjects = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
-    const projects = await prisma.project.findMany({orderBy: {createdAt: "desc"}});
+    const { search } = req.query;
+    const projects = await prisma.project.findMany({
+      where: { projectName: { contains: search as string } },
+      orderBy: { createdAt: "desc" },
+    });
 
     res.status(200).json(new ApiResponse({ projects }));
   }
@@ -605,20 +609,8 @@ const getStaffingSheet = asyncHandler(
 );
 
 /**
- * Function to search for the projects
+ * Function to allocate hours for the projects
  */
-const searchProject = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
-    const { search } = req.query;
-    const projects =
-      await prisma.$queryRaw`SELECT * FROM projects WHERE project_name ILIKE ${
-        "%" + search + "%"
-      }`;
-
-    res.status(200).json(new ApiResponse({ projects }));
-  }
-);
-
 const allocateHours = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const { projectId, staffingDetailId } = req.query as any;
@@ -663,6 +655,5 @@ export {
   assignResources,
   deleteResource,
   getStaffingSheet,
-  searchProject,
   allocateHours,
 };
