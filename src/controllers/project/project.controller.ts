@@ -23,6 +23,16 @@ const getAllProjects = asyncHandler(
       where: {
         projectName: { contains: search as string, mode: "insensitive" },
       },
+      select: {
+        id: true,
+        projectLogo: true,
+        projectName: true,
+        startDate: true,
+        endDate: true,
+        projectDescription: true,
+        projectStatus: true,
+        assignedResourcesIds: true
+      },
       orderBy: { createdAt: "desc" },
     });
 
@@ -38,10 +48,24 @@ const getProject = asyncHandler(
     const project = await prisma.project.findUnique({
       where: { id: req.params.id },
       include: {
-        assignedClient: true,
+        assignedClient: {
+          select: {
+            id: true,
+            clientName: true,
+          },
+        },
         assignedResources: {
           include: {
-            employee_details: true,
+            employeeDetails: {
+              select: {
+                id: true,
+                name: true,
+                emailId: true,
+                domain: true,
+                designation: true,
+                empCode: true
+              },
+            },
           },
         },
       },
@@ -55,7 +79,7 @@ const getProject = asyncHandler(
       const updatedAssignedResourcesObj = project.assignedResources.map(
         (resource) => {
           return {
-            ...resource.employee_details,
+            ...resource.employeeDetails,
             staffingDetailId: resource.id,
             allocatedHours: resource.allocatedHours,
             startDateOfAllocation: resource.startDateOfAllocation,
@@ -571,7 +595,9 @@ const getStaffingSheet = asyncHandler(
           acc[currDomain] = [];
         }
         acc[currDomain].push({
-          ...curr.employeeDetails,
+          id: curr.employeeDetails.id,
+          name: curr.employeeDetails.name,
+          designation: curr.employeeDetails.designation,
           ...curr.assignedResources,
         });
         return acc;

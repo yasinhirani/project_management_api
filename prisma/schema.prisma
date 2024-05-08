@@ -17,7 +17,7 @@ model Client {
   id                             String    @id @default(uuid())
   clientName                     String    @map("client_name")
   email                          String
-  contactNumber                  String       @map("contact_number")
+  contactNumber                  String    @map("contact_number")
   address                        String
   country                        String
   role                           String
@@ -124,8 +124,8 @@ model StaffingDetails {
   startDateOfAllocation String    @default("") @map("start_date_of_allocation")
   endDateOfAllocation   String    @default("") @map("end_date_of_allocation")
   isForcedStaffed       Boolean   @default(false) @map("is_forced_staffed")
-  employee_details      Employee? @relation(fields: [resourceId], references: [id])
-  project_details       Project?  @relation(fields: [projectId], references: [id])
+  employeeDetails       Employee? @relation(fields: [resourceId], references: [id])
+  projectDetails        Project?  @relation(fields: [projectId], references: [id])
 
   @@map("staffing_details")
 }
@@ -135,13 +135,26 @@ model Employee {
   name                String
   emailId             String            @map("email_id")
   contactNumber       String            @map("contact_number")
+  gender              String
+  dateOfBirth         String            @map("date_of_birth")
   domain              String
   designation         String
   dateOfJoining       String            @map("date_of_joining")
   reportingManager    String            @map("reporting_manager")
-  empId               String            @map("emp_id")
-  assignedProjectsIds String[]          @map("assigned_project_ids")
+  domainLead          String            @map("domain_lead")
+  reportingOffice     String            @map("reporting_office")
+  employmentType      String            @map("employment_type")
+  employeeShift       String            @map("employee_shift")
+  empCode             String            @map("emp_code")
+  bloodGroup          String            @default("") @map("blood_group")
+  maritalStatus       String            @default("") @map("marital_status")
+  address             String            @default("")
+  languages           Json[]            @default([])
+  skills              Json[]            @default([])
+  assignedProjectsIds String[]          @default([]) @map("assigned_project_ids")
   assignedProjects    StaffingDetails[]
+  employeeDocuments   Json[]            @default([]) @map("employee_documents")
+  workExperience      Json[]            @default([]) @map("work_experience")
 
   @@map("employees")
 }

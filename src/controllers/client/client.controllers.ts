@@ -36,6 +36,14 @@ const getAllClients = asyncHandler(
     } else {
       clients = await prisma.client.findMany({
         where: { clientName: { contains: search, mode: "insensitive" } },
+        select: {
+          id: true,
+          clientName: true,
+          email: true,
+          contactNumber: true,
+          companyName: true,
+          country: true,
+        },
         orderBy: {
           createdAt: "desc",
         },
@@ -53,7 +61,20 @@ const getClient = asyncHandler(
   async (req: Request, res: Response, next: NextFunction) => {
     const client = await prisma.client.findUnique({
       where: { id: req.params.id },
-      include: { projects: true },
+      include: {
+        projects: {
+          select: {
+            id: true,
+            projectLogo: true,
+            projectName: true,
+            startDate: true,
+            endDate: true,
+            projectStatus: true,
+            projectPriority: true,
+            projectBudget: true,
+          },
+        },
+      },
     });
 
     if (!client) {
