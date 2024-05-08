@@ -42,6 +42,9 @@ const getAllEmployees = asyncHandler(
           id: true,
           name: true,
         },
+        orderBy: {
+          name: "asc",
+        },
       });
     } else {
       employees = await prisma.employee.findMany({
@@ -55,6 +58,9 @@ const getAllEmployees = asyncHandler(
           emailId: true,
           domain: true,
           designation: true,
+        },
+        orderBy: {
+          name: "asc",
         },
       });
     }
