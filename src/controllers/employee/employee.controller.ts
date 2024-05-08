@@ -41,6 +41,7 @@ const getAllEmployees = asyncHandler(
           },
           id: true,
           name: true,
+          designation: true,
         },
         orderBy: {
           name: "asc",
